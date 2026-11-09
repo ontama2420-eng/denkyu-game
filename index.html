@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>電球くん</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="rooms.js"></script>
+  <script defer src="game.js"></script>
+</head>
+<body>
+  <main id="stage">
+    <video class="movie" playsinline preload="auto" aria-hidden="true"></video>
+    <video class="movie" playsinline preload="auto" aria-hidden="true"></video>
+    <audio id="music" preload="none" loop></audio>
+    <div id="overlay" hidden>
+      <button id="target" type="button" hidden></button>
+    </div>
+    <section id="panel" aria-labelledby="heading">
+      <h1 id="heading">電球くん</h1>
+      <p id="message" hidden></p>
+      <button id="action" type="button">START</button>
+    </section>
+    <output id="coordinates" hidden></output>
+  </main>
+</body>
+</html>
