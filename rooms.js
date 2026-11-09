@@ -3,7 +3,7 @@ const REFERENCE = { width: 2728, height: 2048 };
 // id はゲーム内の識別子。file には元のZIP内のファイル名を記載する。
 const ROOMS = {
   room1: {
-    directory: 'videos/room1/',
+    directory: './',
     next: 'room2',
     videoSound: false,
     music: null,
