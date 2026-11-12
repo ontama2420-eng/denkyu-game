@@ -9,6 +9,7 @@
   const message = document.querySelector('#message');
   const action = document.querySelector('#action');
   const coordinates = document.querySelector('#coordinates');
+  const bufferedClips = new Map();
   let room;
   let index = 0;
   let clip;
@@ -49,7 +50,8 @@
   }
 
   function prepare(video, nextRoom, nextClip) {
-    const source = nextRoom.directory + nextClip.file;
+    const path = nextRoom.directory + nextClip.file;
+    const source = bufferedClips.get(path) ?? path;
     video.muted = !nextRoom.videoSound;
     video.loop = Boolean(nextClip.hit);
     if (video.getAttribute('src') !== source || video.error) {
@@ -107,6 +109,14 @@
       incoming.pause();
       ready = false;
       overlay.hidden = true;
+      const path = room.directory + clip.file;
+      const bufferedSource = bufferedClips.get(path);
+      if (bufferedSource && incoming.getAttribute('src') === bufferedSource) {
+        bufferedClips.delete(path);
+        URL.revokeObjectURL(bufferedSource);
+        playClip();
+        return;
+      }
       showPanel('動画を再生できません', clip.file, 'もう一度試す', playClip);
     }
 
@@ -190,6 +200,32 @@
     }
   });
   new ResizeObserver(layoutOverlay).observe(stage);
-  prepare(movies[0], ROOMS.room1, ROOMS.room1.clips[0]);
   showPanel('電球くん', '', 'START', () => enterRoom('room1'));
+
+  async function prepareStart() {
+    const firstRoom = ROOMS.room1;
+    if (location.protocol === 'https:' || location.protocol === 'http:') {
+      action.disabled = true;
+      message.hidden = false;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 45000);
+      let loaded = 0;
+      message.textContent = `動画を準備しています（0 / ${firstRoom.clips.length}）`;
+      await Promise.allSettled(firstRoom.clips.map(async item => {
+        const path = firstRoom.directory + item.file;
+        const response = await fetch(path, { signal: controller.signal });
+        if (!response.ok) throw new Error(path);
+        const video = await response.blob();
+        bufferedClips.set(path, URL.createObjectURL(video));
+        loaded += 1;
+        message.textContent = `動画を準備しています（${loaded} / ${firstRoom.clips.length}）`;
+      }));
+      clearTimeout(timer);
+      message.hidden = true;
+      action.disabled = false;
+    }
+    prepare(movies[0], firstRoom, firstRoom.clips[0]);
+  }
+
+  prepareStart();
 })();
